@@ -7,10 +7,7 @@ import ru.textanalysis.tawt.jmorfsdk.JMorfSdkFactory;
 import ru.textanalysis.tawt.ms.model.jmorfsdk.Form;
 import ru.textanalysis.tawt.ms.model.jmorfsdk.TypeForms;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -37,7 +34,7 @@ public class InternalLoader {
 			log.warn("Not found Dictionary: " + name);
 			dictionary = null;
 		} else {
-			dictionary = new File(url.getPath());
+			dictionary = new File(name);
 			jMorfSdk = JMorfSdkFactory.loadFullLibrary();
 		}
 	}
@@ -57,18 +54,23 @@ public class InternalLoader {
 	}
 
 	private void extracted() {
-		try (FileReader fr = new FileReader(dictionary)) {
-			BufferedReader reader = new BufferedReader(fr);
-			String line = reader.readLine();
-			while (line != null) {
-				line = cache(reader, line);
+		InputStream inputStream = getClass().getClassLoader().getResourceAsStream(dictionary.getName());
+		if (inputStream == null) {
+			log.warn("cannot load dictionary for relationship-networks because the dictionary was not found");
+		} else {
+			try (InputStreamReader fr = new InputStreamReader(inputStream)) {
+				BufferedReader reader = new BufferedReader(fr);
+				String line = reader.readLine();
+				while (line != null) {
+					line = cache(reader, line);
+				}
+			} catch (IOException ex) {
+				log.warn("cannot load dictionary for relationship-networks", ex);
 			}
-		} catch (IOException ex) {
-			log.warn("cannot load dictionary for relationship-networks", ex);
-		}
 
-		for (int countWord = 0; countWord < depth; countWord++) {
-			cache(countWord);
+			for (int countWord = 0; countWord < depth; countWord++) {
+				cache(countWord);
+			}
 		}
 	}
 
