@@ -8,6 +8,7 @@ import ru.textanalysis.tawt.jmorfsdk.JMorfSdkFactory;
 import ru.textanalysis.tawt.ms.model.gama.BearingPhrase;
 import ru.textanalysis.tawt.ms.model.gama.Sentence;
 import ru.textanalysis.tawt.ms.model.gama.Word;
+import ru.textanalysis.tawt.ms.model.jmorfsdk.Form;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -46,6 +47,18 @@ public class Main {
 			"Собственность обязывает и крепко привязывает",
 			"Наличность выходит из обихода"
 		);
+
+		int initKey = jMorfSdk.getOmoForms(word).get(0).getInitialFormKey();
+		relationshipNetworks.getWords(initKey).stream()
+			.map(se -> se.get(depth))
+			.map(relationshipNetworks::getRows)
+			.flatMap(Collection::stream)
+			.forEach(myKey -> {
+				List<Form> forms = jMorfSdk.getOmoForms(myKey);
+				forms.forEach(form -> {
+					System.out.println(form.getMyString() + " " + form.getMorphCharacteristics());
+				});
+			});
 
 		//Поиск предложений, где употребляется синоним слова "Деньги", для изменения уровня, необходимо менять значение depth
 		for (int i = 0; i <= depth; i++) {
